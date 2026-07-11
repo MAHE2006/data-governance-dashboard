@@ -1,15 +1,20 @@
 # Enterprise Data Governance Dashboard
 
-A working demo of a centralized data-governance monitoring platform, covering
-everything in your project brief:
+A working demo of what a centralized data-governance monitoring tool could
+look like — I built this to cover the core things a real governance
+platform needs to do: track ownership, flag quality issues, monitor
+compliance, and give someone a way to actually act on problems instead of
+just staring at a dashboard.
 
-| Bullet point | Where it's implemented |
+Quick map of what's implemented where:
+
+| What it does | Where |
 |---|---|
 | Centralized dashboard for ownership, quality, compliance | `app.py` (all 5 tabs) |
-| Data classification & metadata tracking | `generate_governance_data.py` → `data/governance_catalog.csv`, **Data Catalog** tab |
-| KPIs for data health, reducing inconsistencies | **Overview** tab (health score, % compliant, distributions) |
-| Interactive dashboards for issue identification + remediation | **Remediation Workflow** tab (raise/track/resolve tickets) |
-| Simulated governance workflow aligned to regulations | Policy tags (GDPR, HIPAA, SOX, PCI-DSS...) in **Compliance & Policy** tab |
+| Data classification & metadata tracking | `generate_governance_data.py` → `data/governance_catalog.csv`, Data Catalog tab |
+| KPIs for data health | Overview tab — health score, % compliant, distributions |
+| Issue identification + remediation | Remediation Workflow tab — raise/track/resolve tickets |
+| Governance workflow tied to regulations | Policy tags (GDPR, HIPAA, SOX, PCI-DSS...) in Compliance & Policy tab |
 
 ---
 
@@ -17,108 +22,118 @@ everything in your project brief:
 
 ```
 governance_dashboard/
-├── app.py                        # Streamlit dashboard (run this)
-├── generate_governance_data.py   # Synthetic catalog + remediation ticket generator
-├── quality_engine.py             # Real data-quality profiling engine (completeness,
-│                                  # uniqueness, validity, consistency, overall score)
+├── app.py                        # Streamlit dashboard — run this
+├── generate_governance_data.py   # builds the synthetic catalog + tickets
+├── quality_engine.py             # actual data-quality profiling logic
+│                                  # (completeness, uniqueness, validity,
+│                                  # consistency, overall score)
 ├── requirements.txt
 ├── README.md
 └── data/
-    ├── governance_catalog.csv    # 60 simulated enterprise datasets w/ metadata
-    └── remediation_log.csv       # Linked remediation tickets
+    ├── governance_catalog.csv    # 60 fake "enterprise" datasets w/ metadata
+    └── remediation_log.csv       # tickets linked to catalog entries
 ```
 
 ---
 
 ## 2. How to run it
 
-### Step 1 — Install Python 3.9+ if you don't have it
+**Step 1 — Python 3.9+**
 Check with `python3 --version`.
 
-### Step 2 — Create a virtual environment (recommended)
+**Step 2 — virtual environment (recommended, not required)**
 ```bash
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 ```
 
-### Step 3 — Install dependencies
+**Step 3 — install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4 — Generate the synthetic governance catalog
+**Step 4 — generate the catalog**
 This creates `data/governance_catalog.csv` and `data/remediation_log.csv`.
-(The dashboard will also auto-generate these on first run if you skip this step.)
+(Honestly you can skip this — the app auto-generates them on first run if
+they don't exist yet — but I like running it manually so I know exactly
+what data I'm looking at.)
 ```bash
 python generate_governance_data.py
 ```
 
-### Step 5 — Launch the dashboard
+**Step 5 — launch it**
 ```bash
 streamlit run app.py
 ```
-This opens `http://localhost:8501` in your browser automatically.
+Opens `http://localhost:8501` automatically.
 
-### Step 6 (optional) — Test the quality engine standalone
+**Step 6 (optional) — test the quality engine on its own**
 ```bash
 python quality_engine.py
 ```
-Runs a self-test on a small messy sample and prints the computed scores.
+Runs a self-test on a small messy sample and prints the scores it computes.
 
 ---
 
-## 3. Using the Quality Profiler tab with a real dataset
+## 3. The part I'm actually proud of: the Quality Profiler tab
 
-The **Quality Profiler** tab lets you upload *any* CSV and get live governance
-scores (completeness, uniqueness, validity, consistency) computed by
-`quality_engine.py` — this is the part of the project that proves the KPIs
-work on real, messy data rather than only the synthetic catalog.
+Everything else in this app runs on synthetic data I generated myself,
+which is fine for demoing the UI but doesn't prove the scoring logic
+actually works. So the Quality Profiler tab lets you upload *any* CSV and
+get live completeness/uniqueness/validity/consistency scores computed by
+`quality_engine.py` — this is the part that shows the KPIs hold up on real,
+messy data and not just my own synthetic catalog.
 
-### Recommended open datasets to download and try (all free, no login walls beyond a Kaggle account):
+A few datasets that work well for testing this (all free, no login beyond
+maybe a Kaggle account):
 
-1. **Titanic - Machine Learning from Disaster**
-   https://www.kaggle.com/competitions/titanic/data
-   → Has real missing values (`Age`, `Cabin`, `Embarked`) — good for demoing completeness/validity scoring.
+1. **Titanic** — https://www.kaggle.com/competitions/titanic/data
+   Real missing values in `Age`, `Cabin`, `Embarked` — good for testing
+   completeness/validity scoring.
 
-2. **Melbourne Housing Snapshot**
-   https://www.kaggle.com/datasets/dansbecker/melbourne-housing-snapshot
-   → Naturally messy real-estate data with many missing fields and mixed quality — great stress-test for the profiler.
+2. **Melbourne Housing Snapshot** — https://www.kaggle.com/datasets/dansbecker/melbourne-housing-snapshot
+   Naturally messy real-estate data, lots of missing fields — decent
+   stress test for the profiler.
 
-3. **Online Retail Dataset (UCI / Kaggle mirror)**
-   https://www.kaggle.com/datasets/carrie1/ecommerce-data
-   → Contains duplicate invoices and missing `CustomerID` — good for uniqueness/completeness KPIs.
+3. **Online Retail (Kaggle mirror)** — https://www.kaggle.com/datasets/carrie1/ecommerce-data
+   Duplicate invoices, missing CustomerID — good for uniqueness/completeness.
 
-4. **Telco Customer Churn**
-   https://www.kaggle.com/datasets/blastchar/telco-customer-churn
-   → Good for validity checks (e.g. blank strings hiding as missing values).
+4. **Telco Customer Churn** — https://www.kaggle.com/datasets/blastchar/telco-customer-churn
+   Good for validity checks, like blank strings hiding as missing values.
 
-Download any CSV, unzip if needed, then in the **Quality Profiler** tab click
-"Browse files" and select it. No code changes needed — the engine inspects
-column names/dtypes automatically to decide what "valid" means per column.
+Download any of these, unzip if needed, go to the Quality Profiler tab,
+click "Browse files," pick it. No code changes needed — the engine looks at
+column names and dtypes to figure out what "valid" means per column.
 
-> If you don't want to use Kaggle, any CSV works — company export, a public
-> government open-data portal file, etc. The profiler is fully generic.
+Honestly, any CSV works — a company export, an open-data portal file,
+whatever. The profiler isn't hardcoded to a specific schema.
 
 ---
 
-## 4. Regenerating a bigger/different synthetic catalog
+## 4. Making the synthetic catalog bigger
 
-Open `generate_governance_data.py` and change:
+Open `generate_governance_data.py` and bump this up:
 ```python
-catalog_df = generate_catalog(n_datasets=60)   # bump this number up
+catalog_df = generate_catalog(n_datasets=60)
 ```
-then re-run `python generate_governance_data.py`. The random seed (`RNG = np.random.default_rng(42)`)
-keeps output reproducible — remove/change the seed if you want fresh random data each run.
+then re-run `python generate_governance_data.py`. There's a fixed random
+seed (`RNG = np.random.default_rng(42)`) so the output is reproducible —
+remove or change it if you want different random data every run.
 
 ---
 
-## 5. Extending this into a full project write-up
+## 5. Things I'd add if I kept working on this
 
-Suggested sections for your report/presentation:
-- **Architecture diagram**: CSV/DB catalog → profiling engine → Streamlit dashboard → stakeholder remediation loop.
-- **KPI definitions**: define each quality dimension (completeness, accuracy, consistency, timeliness, uniqueness) with formulas — all are implemented in `quality_engine.py` and can be quoted directly.
-- **Sample screenshots**: run the app locally and screenshot each tab.
-- **Future work**: connect to a real warehouse (Snowflake/BigQuery) via SQL instead of CSV, add role-based access control, schedule the profiler as an Airflow job, add email/Slack alerts on new "Non-Compliant" tickets.
+- An actual architecture diagram: CSV/DB catalog → profiling engine →
+  Streamlit dashboard → remediation loop
+- Formal KPI definitions written up (completeness, accuracy, consistency,
+  timeliness, uniqueness) — the formulas already exist in
+  `quality_engine.py`, just need to document them properly
+- Screenshots of each tab for a write-up
+- Connect to a real warehouse (Snowflake/BigQuery) via SQL instead of CSVs
+- Role-based access control
+- Run the profiler as a scheduled Airflow job instead of manually
+- Slack/email alerts when a new ticket gets marked "Non-Compliant"
 
 ---
 
@@ -126,7 +141,7 @@ Suggested sections for your report/presentation:
 
 | Issue | Fix |
 |---|---|
-| `ModuleNotFoundError: streamlit` | Run `pip install -r requirements.txt` inside your active virtual environment |
+| `ModuleNotFoundError: streamlit` | `pip install -r requirements.txt` inside your active venv |
 | Port 8501 already in use | `streamlit run app.py --server.port 8502` |
 | Blank charts | Make sure `data/governance_catalog.csv` exists — run `python generate_governance_data.py` |
-| Uploaded CSV shows odd validity scores | The engine infers meaning from column names (e.g. `email`, `date`, `age`) — rename columns if your dataset uses very different naming |
+| Uploaded CSV gives weird validity scores | The engine guesses meaning from column names (`email`, `date`, `age`, etc.) — rename columns if your dataset uses very different naming |
