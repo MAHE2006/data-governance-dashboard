@@ -69,4 +69,4 @@ streamlit run app.py
 
 ## Project Status
 
-Deployed working demo. The application uses synthetic governance data, and its compliance indicators are illustrative rather than a formal regulatory compliance assessment.
+Deployed working demo. The application uses synthetic governance data, and its compliance indicators are illustrative rather than a formal regulatory compliance assessment. I have also uploaded Screenshots of the deployed app. I have used "Flats dataset" from Kaggle to show the demo for Live Data Quality profiler.
